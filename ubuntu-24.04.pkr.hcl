@@ -56,7 +56,7 @@ variable "gallery_name" {
 
 variable "gallery_image_name" {
   type    = string
-  default = "custom-ubu2404"
+  default = "gh-action-ubu2404"
 }
 
 variable "gallery_image_version" {
