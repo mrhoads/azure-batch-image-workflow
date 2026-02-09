@@ -20,8 +20,20 @@ echo "UFW installed but not enabled (Azure manages network security)"
 
 # Disable unnecessary services
 echo "Disabling unnecessary services..."
-sudo systemctl disable --now snapd.service || true
-sudo systemctl disable --now snapd.socket || true
+# Check if services exist before disabling to avoid silent failures
+if sudo systemctl list-units --full --all | grep -q snapd.service; then
+  echo "Disabling snapd.service..."
+  sudo systemctl disable --now snapd.service
+else
+  echo "snapd.service not found, skipping"
+fi
+
+if sudo systemctl list-units --full --all | grep -q snapd.socket; then
+  echo "Disabling snapd.socket..."
+  sudo systemctl disable --now snapd.socket
+else
+  echo "snapd.socket not found, skipping"
+fi
 
 # Set secure permissions
 echo "Setting secure permissions on system files..."

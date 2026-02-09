@@ -18,7 +18,9 @@ git clone https://github.com/mrhoads/azure-batch-image-workflow.git
 cd azure-batch-image-workflow
 
 # Install Packer (if not already installed)
-wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+# Download and verify the HashiCorp GPG key
+wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+# Add HashiCorp repository
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 sudo apt update && sudo apt install packer
 
@@ -222,9 +224,9 @@ Then create a Pull Request on GitHub.
 
 In `scripts/install-apps.sh`:
 ```bash
-# Add custom repository
-wget -qO - https://example.com/key.gpg | sudo apt-key add -
-echo "deb https://example.com/repo $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/custom.list
+# Add custom repository (using modern GPG method)
+wget -qO - https://example.com/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/custom-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/custom-archive-keyring.gpg] https://example.com/repo $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/custom.list
 sudo apt-get update
 sudo apt-get install -y custom-package
 ```
