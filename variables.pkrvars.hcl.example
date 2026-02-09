@@ -1,0 +1,25 @@
+# Example variables file for Packer build
+# Copy this file to variables.pkrvars.hcl and fill in your values
+# Do not commit variables.pkrvars.hcl with sensitive data to version control
+
+# Azure Authentication (can also be set via environment variables)
+# client_id       = "your-client-id"          # Azure Service Principal Application/Client ID
+# client_secret   = "your-client-secret"      # Azure Service Principal Secret
+# subscription_id = "your-subscription-id"    # Azure Subscription ID
+# tenant_id       = "your-tenant-id"          # Azure Active Directory Tenant ID
+
+# Resource Configuration
+resource_group = "rg-packer-images"  # Existing resource group where the gallery and build VM will be located
+location       = "eastus"            # Azure region (e.g., eastus, westus2, centralus)
+
+# Image Configuration
+image_name    = "ubuntu-2404-batch"  # Base name for the managed image (not used with Secure Boot, kept for reference)
+image_version = "1.0.0"              # Image version number (semantic versioning recommended)
+
+# Azure Compute Gallery Configuration
+gallery_name          = "BatchImageGallery"  # Name of the Azure Compute Gallery (must exist before build)
+gallery_image_name    = "Ubuntu2404Batch"    # Image definition name in the gallery (must exist before build)
+gallery_image_version = "1.0.0"              # Version to publish to the gallery (must be unique)
+
+# VM Configuration
+vm_size = "Standard_D2s_v3"  # Azure VM size for the build VM (must support Generation 2)

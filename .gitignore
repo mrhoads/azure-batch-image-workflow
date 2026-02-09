@@ -1,0 +1,40 @@
+# Packer artifacts
+packer_cache/
+*.box
+crash.log
+
+# Packer plugin binaries
+packer-plugin-*
+
+# SSH keys
+*.pem
+*.key
+
+# Build artifacts
+output-*/
+builds/
+
+# Logs
+*.log
+
+# Environment files
+.env
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Terraform files (if used alongside)
+.terraform/
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+
+# Azure credentials
+*.publishsettings
+*.azureProfile
+
+# Trivy cache
+.trivyignore
+trivy-results/
