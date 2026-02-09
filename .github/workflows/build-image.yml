@@ -1,0 +1,130 @@
+name: Build and Publish Azure Batch Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_version:
+        description: 'Image version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+  push:
+    branches:
+      - main
+    paths:
+      - 'ubuntu-24.04.pkr.hcl'
+      - 'scripts/**'
+      - '.github/workflows/build-image.yml'
+
+env:
+  PACKER_VERSION: '1.10.0'
+
+jobs:
+  validate:
+    name: Validate Packer Template
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Initialize Packer
+        run: packer init ubuntu-24.04.pkr.hcl
+
+      - name: Validate Packer template
+        run: packer validate ubuntu-24.04.pkr.hcl
+
+      - name: Format check Packer template
+        run: packer fmt -check ubuntu-24.04.pkr.hcl
+
+  build:
+    name: Build Azure Image
+    runs-on: ubuntu-latest
+    needs: validate
+    # Only run on main branch or manual trigger
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Initialize Packer
+        run: packer init ubuntu-24.04.pkr.hcl
+
+      - name: Set image version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "IMAGE_VERSION=${{ github.event.inputs.image_version }}" >> $GITHUB_ENV
+          else
+            # Use commit SHA as version for automatic builds
+            echo "IMAGE_VERSION=1.0.${{ github.run_number }}" >> $GITHUB_ENV
+          fi
+
+      - name: Build image with Packer
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: |
+          packer build \
+            -var "image_version=${IMAGE_VERSION}" \
+            -var "gallery_image_version=${IMAGE_VERSION}" \
+            ubuntu-24.04.pkr.hcl
+
+      - name: Upload manifest
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: packer-manifest
+          path: manifest.json
+          retention-days: 30
+
+      - name: Display build summary
+        if: success()
+        run: |
+          echo "## Image Build Successful! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Version:** ${IMAGE_VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f manifest.json ]; then
+            echo "### Build Details" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            cat manifest.json >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  security-scan:
+    name: Security Scan Results
+    runs-on: ubuntu-latest
+    needs: build
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Display security summary
+        run: |
+          echo "## Security Scan Summary :shield:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Vulnerability scanning is performed during the Packer build process using Trivy." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The scan results are stored in the image build logs." >> $GITHUB_STEP_SUMMARY
+          echo "Review the build logs for detailed vulnerability information." >> $GITHUB_STEP_SUMMARY
