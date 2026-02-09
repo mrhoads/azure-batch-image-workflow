@@ -8,6 +8,8 @@ echo "========================================="
 # Install Trivy
 echo "Installing Trivy vulnerability scanner..."
 # Use modern GPG keyring method (apt-key is deprecated in Ubuntu 22.04+)
+# Note: Downloading from official Aqua Security repo over HTTPS
+# For production, consider verifying the GPG key fingerprint or using a pinned key
 wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
 sudo apt-get update

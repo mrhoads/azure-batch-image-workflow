@@ -19,6 +19,7 @@ cd azure-batch-image-workflow
 
 # Install Packer (if not already installed)
 # Download and verify the HashiCorp GPG key
+# Note: For production, verify the key fingerprint matches HashiCorp's published fingerprint
 wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
 # Add HashiCorp repository
 echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
