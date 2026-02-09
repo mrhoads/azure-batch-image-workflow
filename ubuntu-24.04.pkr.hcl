@@ -14,8 +14,8 @@ variable "client_id" {
 }
 
 variable "client_secret" {
-  type    = string
-  default = env("ARM_CLIENT_SECRET")
+  type      = string
+  default   = env("ARM_CLIENT_SECRET")
   sensitive = true
 }
 
@@ -78,10 +78,10 @@ source "azure-arm" "ubuntu" {
   tenant_id       = var.tenant_id
 
   # Resource configuration
-  managed_image_name                = "${var.image_name}-${var.image_version}"
-  managed_image_resource_group_name = var.resource_group
-  location                          = var.location
-  vm_size                           = var.vm_size
+  # Note: When using Secure Boot/vTPM, must publish directly to Shared Image Gallery
+  # managed_image_name is not compatible with secure_boot_enabled/vtpm_enabled
+  build_resource_group_name = var.resource_group
+  vm_size                   = var.vm_size
 
   # OS Image configuration - Ubuntu 24.04 LTS
   os_type         = "Linux"
@@ -96,6 +96,7 @@ source "azure-arm" "ubuntu" {
   os_disk_size_gb     = 30
 
   # Azure Compute Gallery configuration
+  # Publishing directly to gallery is required for Secure Boot/vTPM
   shared_image_gallery_destination {
     subscription         = var.subscription_id
     resource_group       = var.resource_group
@@ -118,7 +119,7 @@ source "azure-arm" "ubuntu" {
 
 # Build configuration
 build {
-  name = "ubuntu-batch-image"
+  name    = "ubuntu-batch-image"
   sources = ["source.azure-arm.ubuntu"]
 
   # Update system packages
