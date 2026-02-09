@@ -31,12 +31,12 @@ variable "tenant_id" {
 
 variable "resource_group" {
   type    = string
-  default = "rg-packer-images"
+  default = "demo-batch-rg"
 }
 
 variable "location" {
   type    = string
-  default = "eastus"
+  default = "canadacentral"
 }
 
 variable "image_name" {
@@ -51,12 +51,12 @@ variable "image_version" {
 
 variable "gallery_name" {
   type    = string
-  default = "BatchImageGallery"
+  default = "demo_batch_gallery"
 }
 
 variable "gallery_image_name" {
   type    = string
-  default = "Ubuntu2404Batch"
+  default = "custom-ubu2404"
 }
 
 variable "gallery_image_version" {
